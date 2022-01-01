@@ -40,28 +40,25 @@ uint8_t i2c_call(uint8_t address){
 	i2c_send_start();
 	i2c_send_address(address, 'w');
 	if((TWSR&0xF8) == 0x18){								//check ACK bit, 0x18 for transmiter, 0x40 for receiver
-		TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
-		while (! (TWCR & (1<<TWSTO)));
+		i2c_send_stop();
 		return 1;
 		} else{
-		TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
-		while (! (TWCR & (1<<TWSTO)));
+		i2c_send_stop();
 		return 0;
 	}
 }
 
 uint8_t i2c_scan(void){
-	uint8_t SLA;
-	for(SLA = 1; SLA < 128; SLA++){
-		if(i2c_call(SLA) == 1){
-			return SLA;
+	uint8_t address;
+	for(address = 1; address < 128; address++){
+		if(i2c_call(address) == 1){
 			break;
-			} else if(SLA == 127){
-			return 255;
+		} else if(address == 127){
+			address = 0xff;
 			break;
 		}
 	}
-	return 254;
+	return address;
 }
 
 uint8_t i2c_write(uint8_t address, uint8_t data){
